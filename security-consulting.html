@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AshesGhost — Security Consulting & Penetration Testing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Oxanium:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<style>
+  :root {
+    --accent: #00c8ff;
+    --accent-dim: #0077aa;
+    --accent-glow: rgba(0,200,255,0.13);
+    --accent2: #7b5cff;
+    --accent2-glow: rgba(123,92,255,0.10);
+    --bg: #020810;
+    --bg2: #040d18;
+    --surface: #081422;
+    --border: rgba(0,200,255,0.15);
+    --text: #c5ddf0;
+    --text-dim: #4a6a80;
+    --red: #ff4757;
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Oxanium', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    line-height: 1.6;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.06) 2px,
+      rgba(0,0,0,0.06) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  #matrix {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0.035;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2.5rem;
+    background: rgba(2,8,16,0.88);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: var(--display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .nav-logo .shield {
+    width: 22px; height: 22px;
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.8;
+  }
+
+  .nav-logo span { color: var(--text-dim); }
+
+  nav ul { display: flex; gap: 2rem; list-style: none; }
+
+  nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.78rem;
+    letter-spacing: 1px;
+    transition: color 0.2s;
+  }
+
+  nav a:hover { color: var(--accent); }
+  nav a::before { content: '> '; color: var(--accent-dim); }
+
+  .nav-badge {
+    font-size: 0.65rem;
+    padding: 0.18rem 0.6rem;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 2px;
+    letter-spacing: 1px;
+    margin-left: 1rem;
+    animation: pulse-border 2s ease infinite;
+  }
+
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 6px var(--accent-glow); }
+    50%       { box-shadow: 0 0 18px var(--accent-glow); }
+  }
+
+  /* ── HERO ── */
+  #hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6rem 2rem 4rem;
+    z-index: 1;
+  }
+
+  /* Radial glow behind hero */
+  #hero::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(0,200,255,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-inner { max-width: 740px; position: relative; z-index: 1; }
+
+  .hero-pre {
+    font-size: 0.72rem;
+    color: var(--accent-dim);
+    letter-spacing: 4px;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .hero-name {
+    font-family: var(--display);
+    font-size: clamp(2.4rem, 7vw, 5rem);
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -1px;
+    line-height: 1.1;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .hero-name .accent { color: var(--accent); text-shadow: 0 0 40px rgba(0,200,255,0.5); }
+  .hero-name .accent2 { color: var(--accent2); }
+
+  .hero-cursor {
+    display: inline-block;
+    width: 3px; height: 0.85em;
+    background: var(--accent);
+    margin-left: 4px;
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+  }
+
+  .hero-sub {
+    margin-top: 0.5rem;
+    font-family: var(--display);
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    font-weight: 300;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    animation: fadeUp 0.6s 0.15s ease both;
+  }
+
+  .hero-tagline {
+    margin-top: 1.4rem;
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    animation: fadeUp 0.6s 0.22s ease both;
+  }
+
+  .hero-tagline span { color: var(--accent); }
+
+  /* Free badge */
+  .free-banner {
+    margin: 1.8rem auto 0;
+    max-width: 480px;
+    background: rgba(0,200,255,0.06);
+    border: 1px solid rgba(0,200,255,0.25);
+    border-radius: 4px;
+    padding: 0.9rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    animation: fadeUp 0.6s 0.28s ease both;
+    text-align: left;
+  }
+
+  .free-icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+  }
+
+  .free-banner p {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .free-banner strong { color: var(--accent); font-weight: 400; }
+
+  /* Terminal */
+  .hero-terminal {
+    margin: 2.2rem auto 0;
+    max-width: 540px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    text-align: left;
+    animation: fadeUp 0.6s 0.38s ease both;
+    box-shadow: 0 0 50px rgba(0,200,255,0.04);
+  }
+
+  .term-bar {
+    background: #0a1828;
+    padding: 0.5rem 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.r { background: #ff5f57; }
+  .dot.y { background: #febc2e; }
+  .dot.g { background: #28c840; }
+
+  .term-title { margin-left: auto; font-size: 0.7rem; color: var(--text-dim); }
+
+  .term-body { padding: 1.2rem 1.4rem; font-size: 0.82rem; line-height: 2.1; }
+  .term-line { display: block; }
+  .prompt { color: var(--accent); }
+  .cmd { color: #5ec9f5; }
+  .out { color: var(--text-dim); padding-left: 1rem; }
+  .val { color: var(--accent); }
+  .val-ok { color: #28e07b; }
+  .val-warn { color: #ffb347; }
+
+  .hero-cta {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.52s ease both;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 0.65rem 1.7rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    border: 1px solid var(--accent);
+    font-weight: 700;
+  }
+
+  .btn-primary:hover {
+    background: transparent;
+    color: var(--accent);
+    box-shadow: 0 0 24px var(--accent-glow);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 24px var(--accent-glow);
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    position: relative;
+    z-index: 1;
+    padding: 5rem 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 0.68rem;
+    letter-spacing: 4px;
+    color: var(--accent-dim);
+    margin-bottom: 0.4rem;
+  }
+
+  .section-title {
+    font-family: var(--display);
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 2.5rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── SERVICES ── */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.4rem;
+  }
+
+  .service-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.8rem;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .service-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+
+  .service-card:hover {
+    border-color: rgba(0,200,255,0.35);
+    box-shadow: 0 0 30px var(--accent-glow);
+  }
+
+  .service-card:hover::after { transform: scaleX(1); }
+
+  .service-icon {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .service-name {
+    font-family: var(--display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 0.6rem;
+    letter-spacing: 1px;
+  }
+
+  .service-desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
+  .service-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .service-list li {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
+  .service-list li::before { content: '▸ '; color: var(--accent); }
+
+  /* ── PROCESS ── */
+  .process-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .process-step {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 1.4rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid rgba(0,200,255,0.07);
+    position: relative;
+  }
+
+  .process-step:last-child { border-bottom: none; }
+
+  .step-num {
+    font-family: var(--display);
+    font-size: 2rem;
+    font-weight: 700;
+    color: rgba(0,200,255,0.18);
+    line-height: 1;
+    padding-top: 0.2rem;
+  }
+
+  .step-content h3 {
+    font-family: var(--display);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 1px;
+    margin-bottom: 0.4rem;
+  }
+
+  .step-content p {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* ── ABOUT ── */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  @media (max-width: 640px) { .about-grid { grid-template-columns: 1fr; } }
+
+  .about-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.6rem;
+  }
+
+  .about-block h3 {
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .about-block p {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid rgba(0,200,255,0.07);
+  }
+
+  .stat-row .k { color: var(--text-dim); }
+  .stat-row .v { color: var(--accent); }
+  .stat-row .v-ok { color: #28e07b; }
+
+  /* ── SKILLS ── */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .skill-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.4rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .skill-card:hover {
+    border-color: rgba(0,200,255,0.35);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+
+  .skill-card h3 {
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .skill-bar-row { margin-bottom: 0.7rem; }
+
+  .skill-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.73rem;
+    color: var(--text-dim);
+    margin-bottom: 0.3rem;
+  }
+
+  .skill-bar-track {
+    height: 3px;
+    background: rgba(0,200,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .skill-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    width: 0;
+    transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 8px rgba(0,200,255,0.4);
+  }
+
+  /* ── CASES ── */
+  .cases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.4rem;
+  }
+
+  .case-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.6rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s;
+  }
+
+  .case-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 0;
+    background: linear-gradient(180deg, var(--accent), var(--accent2));
+    transition: height 0.3s;
+  }
+
+  .case-card:hover { border-color: rgba(0,200,255,0.35); box-shadow: 0 0 30px var(--accent-glow); }
+  .case-card:hover::before { height: 100%; }
+
+  .case-type {
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    color: var(--accent-dim);
+    margin-bottom: 0.6rem;
+  }
+
+  .case-name {
+    font-family: var(--display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+
+  .case-desc {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.65;
+    margin-bottom: 1rem;
+  }
+
+  .case-result {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.7rem;
+    background: rgba(40,224,123,0.08);
+    border: 1px solid rgba(40,224,123,0.25);
+    color: #28e07b;
+    border-radius: 2px;
+    letter-spacing: 1px;
+  }
+
+  .case-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.8rem; }
+
+  .tag {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.6rem;
+    background: rgba(0,200,255,0.06);
+    border: 1px solid rgba(0,200,255,0.18);
+    color: var(--accent-dim);
+    border-radius: 2px;
+    letter-spacing: 1px;
+  }
+
+  /* ── CONTACT ── */
+  .contact-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  @media (max-width: 680px) { .contact-wrapper { grid-template-columns: 1fr; } }
+
+  .contact-info {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem;
+  }
+
+  .contact-info h3 {
+    font-family: var(--display);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.6rem;
+  }
+
+  .contact-info p {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.8;
+    margin-bottom: 1.6rem;
+  }
+
+  .contact-links { display: flex; flex-direction: column; gap: 0.7rem; }
+
+  .contact-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    padding: 0.55rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .contact-link:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+
+  .scope-box {
+    background: var(--surface);
+    border: 1px solid rgba(255,71,87,0.25);
+    border-radius: 4px;
+    padding: 2rem;
+  }
+
+  .scope-box h3 {
+    font-family: var(--display);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--red);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .scope-box h3::before { content: '⚠'; font-size: 0.9rem; }
+
+  .scope-item {
+    display: flex;
+    gap: 0.8rem;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-bottom: 0.8rem;
+    line-height: 1.6;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid rgba(255,71,87,0.07);
+  }
+
+  .scope-item:last-child { border-bottom: none; margin-bottom: 0; }
+
+  .scope-item .ok { color: #28e07b; font-size: 0.9rem; flex-shrink: 0; }
+  .scope-item .no { color: var(--red); font-size: 0.9rem; flex-shrink: 0; }
+
+  /* ── FOOTER ── */
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 2rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  footer span { color: var(--accent); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--accent-dim); border-radius: 2px; }
+
+  @media (max-width: 640px) {
+    nav ul { gap: 1rem; }
+    nav a { font-size: 0.72rem; }
+    .nav-badge { display: none; }
+    .process-step { grid-template-columns: 42px 1fr; }
+  }
+</style>
+
+<canvas id="matrix"></canvas>
+
+<!-- NAV -->
+<nav>
+  <a href="#hero" class="nav-logo">
+    <svg class="shield" viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5 3.6 9.6 8 11 4.4-1.4 8-6 8-11V6L12 2z"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Ashes<span>Ghost</span>
+  </a>
+  <ul>
+    <li><a href="#services">services</a></li>
+    <li><a href="#process">process</a></li>
+    <li><a href="#skills">skills</a></li>
+    <li><a href="#cases">cases</a></li>
+    <li><a href="#contact">contact</a></li>
+  </ul>
+  <span class="nav-badge">FREE AUDIT</span>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-inner">
+    <p class="hero-pre">// ESTABLISHING SECURE CONNECTION...</p>
+    <h1 class="hero-name">
+      <span class="accent">Penetration</span> Testing<br>
+      &amp; <span class="accent2">Security</span> Consulting<span class="hero-cursor"></span>
+    </h1>
+    <p class="hero-sub">by AshesGhost</p>
+    <p class="hero-tagline">
+      Find the holes before the <span>threat actors</span> do.
+    </p>
+
+    <div class="free-banner">
+      <span class="free-icon">🔓</span>
+      <p>
+        Currently offering <strong>free security assessments</strong> for individuals, small businesses &amp; open-source projects — building a track record, no catch. Scoped engagements, written reports, responsible disclosure.
+      </p>
+    </div>
+
+    <div class="hero-terminal">
+      <div class="term-bar">
+        <div class="dot r"></div>
+        <div class="dot y"></div>
+        <div class="dot g"></div>
+        <span class="term-title">bash — AshesGhost@kali · secure-audit</span>
+      </div>
+      <div class="term-body">
+        <span class="term-line"><span class="prompt">┌──(AshesGhost㉿kali)-[~/engagement]</span></span>
+        <span class="term-line"><span class="prompt">└─$ </span><span class="cmd">./recon.sh --target client.example.com</span></span>
+        <span class="term-line out">[ <span class="val-ok">✓</span> ] Scope confirmed · NDA signed</span>
+        <span class="term-line out">[ <span class="val-warn">!</span> ] 3 open ports · 1 misconfigured header</span>
+        <span class="term-line out">[ <span class="val">→</span> ] Generating report... findings/report.pdf</span>
+        <span class="term-line"><span class="prompt">└─$ </span><span class="hero-cursor" style="animation-delay:.4s"></span></span>
+      </div>
+    </div>
+
+    <div class="hero-cta">
+      <a href="#contact" class="btn btn-primary">request free audit</a>
+      <a href="#services" class="btn btn-ghost">view services</a>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <p class="section-label">// 01</p>
+  <h2 class="section-title">$ cat services.txt</h2>
+  <div class="services-grid reveal">
+
+    <div class="service-card">
+      <span class="service-icon">🕵️</span>
+      <div class="service-name">PENETRATION TESTING</div>
+      <p class="service-desc">Authorized simulation of real-world attacks to uncover vulnerabilities before malicious actors do.</p>
+      <ul class="service-list">
+        <li>Web application pentesting</li>
+        <li>Network infrastructure assessment</li>
+        <li>API security testing</li>
+        <li>Social engineering simulation</li>
+      </ul>
+    </div>
+
+    <div class="service-card">
+      <span class="service-icon">🔎</span>
+      <div class="service-name">SECURITY AUDIT</div>
+      <p class="service-desc">Comprehensive review of your systems, configurations, and policies to identify security gaps.</p>
+      <ul class="service-list">
+        <li>Configuration & hardening review</li>
+        <li>Code security review (Python, C)</li>
+        <li>Linux server audit</li>
+        <li>Firewall & network rules analysis</li>
+      </ul>
+    </div>
+
+    <div class="service-card">
+      <span class="service-icon">📋</span>
+      <div class="service-name">SECURITY CONSULTING</div>
+      <p class="service-desc">Strategic guidance to build a security-first mindset into your product or infrastructure.</p>
+      <ul class="service-list">
+        <li>Threat modeling & risk assessment</li>
+        <li>Security roadmap planning</li>
+        <li>Incident response planning</li>
+        <li>Dev team security awareness</li>
+      </ul>
+    </div>
+
+    <div class="service-card">
+      <span class="service-icon">📄</span>
+      <div class="service-name">WRITTEN REPORTING</div>
+      <p class="service-desc">Clear, professional reports — executive summary + technical detail — with remediation steps.</p>
+      <ul class="service-list">
+        <li>CVSS-scored vulnerability list</li>
+        <li>Proof-of-concept documentation</li>
+        <li>Step-by-step remediation guide</li>
+        <li>Re-test after fixes applied</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <p class="section-label">// 02</p>
+  <h2 class="section-title">$ cat engagement-flow.md</h2>
+  <div class="process-steps reveal">
+
+    <div class="process-step">
+      <div class="step-num">01</div>
+      <div class="step-content">
+        <h3>INITIAL CONTACT & SCOPING</h3>
+        <p>We define the engagement scope, targets, rules of engagement, and sign an NDA / authorization letter. No surprises.</p>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <div class="step-num">02</div>
+      <div class="step-content">
+        <h3>RECONNAISSANCE</h3>
+        <p>Passive and active information gathering — DNS enumeration, OSINT, port scanning, service fingerprinting — mapping the attack surface.</p>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <div class="step-num">03</div>
+      <div class="step-content">
+        <h3>EXPLOITATION & TESTING</h3>
+        <p>Controlled attempts to exploit discovered vulnerabilities: web attacks (SQLi, XSS, IDOR, misconfigs), network pivoting, privilege escalation.</p>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <div class="step-num">04</div>
+      <div class="step-content">
+        <h3>WRITTEN REPORT DELIVERY</h3>
+        <p>A structured PDF report with risk ratings, evidence screenshots, reproduction steps, and prioritized remediation advice.</p>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <div class="step-num">05</div>
+      <div class="step-content">
+        <h3>RE-TEST (FREE)</h3>
+        <p>After you've applied fixes, I'll verify the vulnerabilities are properly closed. All current engagements include a free re-test.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <p class="section-label">// 03</p>
+  <h2 class="section-title">$ ls skills/</h2>
+  <div class="skills-grid reveal">
+
+    <div class="skill-card">
+      <h3>OFFENSIVE SECURITY</h3>
+      <div class="skill-bar-row">
+        <div class="skill-bar-label"><span>Web App Pentesting</span><span>75%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill" data-width="75"></div></div>
+      </div>
+      <div class="skill-bar-row">
+        <div class="skill-bar-label"><span>Network Recon & Scanning</span><span>70%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill" data-width="70"></div></div>
+      </div>
+      <div class="skill-bar-row">
+        <div class="skill-bar-label"><span>Exploitation</span><span>60%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill" data-width="60"></div></div>
+      </div>
+    </div>
+
+    <div class="skill-card">
+      <h3>TOOLS & PLATFORM</h3>
+      <div class="skill-bar-row">
+        <div class="skill-bar-label"><span>Kali Linux / Linux</span><span>85%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill" data-width="85"></div></div>
+      </div>
+      <div class="skill-bar-row">
+        <div class="skill-bar-label"><span>Nmap / Wireshark</span><span>70%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill" data-width="70"></div></div>
+      </div>
+      <div class="skill-bar-row">
+        <div class="skill-bar-label"><span>Metasploit / Burp Suite</span><span>62%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill" data-width="62"></div></div>
+      </div>
+    </div>
+
+    <div class="skill-card">
+      <h3>DEVELOPMENT</h3>
+      <div class="skill-bar-row">
+        <div class="skill-bar-label"><span>Python (scripting/automation)</span><span>80%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill" data-width="80"></div></div>
+      </div>
+      <div class="skill-bar-row">
+        <div class="skill-bar-label"><span>Bash / Shell</span><span>75%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill" data-width="75"></div></div>
+      </div>
+      <div class="skill-bar-row">
+        <div class="skill-bar-label"><span>C / C++</span><span>55%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill" data-width="55"></div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SAMPLE CASES -->
+<section id="cases">
+  <p class="section-label">// 04</p>
+  <h2 class="section-title">$ ls cases/</h2>
+  <div class="cases-grid reveal">
+
+    <div class="case-card">
+      <p class="case-type">WEB APPLICATION</p>
+      <div class="case-name">IDOR & Auth Bypass</div>
+      <p class="case-desc">Discovered insecure direct object reference allowing unauthenticated access to other users' private data on a small SaaS platform.</p>
+      <span class="case-result">CRITICAL · PATCHED</span>
+      <div class="case-tags">
+        <span class="tag">IDOR</span>
+        <span class="tag">AUTH</span>
+        <span class="tag">BURP</span>
+      </div>
+    </div>
+
+    <div class="case-card">
+      <p class="case-type">NETWORK ASSESSMENT</p>
+      <div class="case-name">Exposed Admin Panels</div>
+      <p class="case-desc">Identified three publicly accessible administration interfaces with default credentials during a network audit of a home lab setup.</p>
+      <span class="case-result">HIGH · REMEDIATED</span>
+      <div class="case-tags">
+        <span class="tag">NMAP</span>
+        <span class="tag">RECON</span>
+        <span class="tag">MISCONFIG</span>
+      </div>
+    </div>
+
+    <div class="case-card" style="border-style: dashed; opacity: 0.5; cursor: default;">
+      <p class="case-type">COMING SOON</p>
+      <div class="case-name">[ YOUR PROJECT ]</div>
+      <p class="case-desc">Looking for the first real external engagement. If you have a target and authorization, let's talk.</p>
+      <div class="case-tags">
+        <span class="tag">OPEN</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <p class="section-label">// 05</p>
+  <h2 class="section-title">$ ping contact</h2>
+  <div class="contact-wrapper reveal">
+
+    <div class="contact-info">
+      <h3>Start an Engagement</h3>
+      <p>
+        Whether it's a personal project, a small startup, or open-source software — reach out. All current engagements are free, scoped, and conducted with a written authorization agreement.
+      </p>
+      <div class="contact-links">
+        <a href="https://github.com/AshesGhost" target="_blank" class="contact-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48v-1.7c-2.78.61-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0112 6.8c.85 0 1.71.11 2.5.34 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10.01 10.01 0 0022 12c0-5.52-4.48-10-10-10z"/></svg>
+          github.com/AshesGhost
+        </a>
+        <a href="https://rootwolfdev.github.io/WolfSite/" target="_blank" class="contact-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+          Personal Site
+        </a>
+      </div>
+    </div>
+
+    <div class="scope-box">
+      <h3>Scope & Ethics</h3>
+
+      <div class="scope-item">
+        <span class="ok">✓</span>
+        <span>Systems you own or have <strong style="color:var(--text)">explicit written authorization</strong> to test</span>
+      </div>
+      <div class="scope-item">
+        <span class="ok">✓</span>
+        <span>Bug bounty targets within program scope (HackerOne, Bugcrowd, etc.)</span>
+      </div>
+      <div class="scope-item">
+        <span class="ok">✓</span>
+        <span>CTF challenges, home labs, your own VPS / server</span>
+      </div>
+      <div class="scope-item">
+        <span class="no">✗</span>
+        <span>Unauthorized testing of third-party infrastructure — not now, not ever</span>
+      </div>
+      <div class="scope-item">
+        <span class="no">✗</span>
+        <span>Offensive operations with no legitimate defensive purpose</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span>AshesGhost</span> · Security Consulting &amp; Penetration Testing · Currently <span>FREE</span> · <span>2025–2026</span>
+</footer>
+
+<script>
+// ── Matrix rain (blue tint) ──
+const canvas = document.getElementById('matrix');
+const ctx = canvas.getContext('2d');
+let W, H, cols, drops;
+
+function initMatrix() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  const size = 14;
+  cols = Math.floor(W / size);
+  drops = Array(cols).fill(1);
+}
+
+function drawMatrix() {
+  ctx.fillStyle = 'rgba(2,8,16,0.05)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#00c8ff';
+  ctx.font = '13px Share Tech Mono';
+  const chars = '01アイウBCDEFGHIJKL#$%^&*NMAP<>{}SCAN';
+  drops.forEach((y, i) => {
+    const ch = chars[Math.floor(Math.random() * chars.length)];
+    ctx.fillText(ch, i * 14, y * 14);
+    if (y * 14 > H && Math.random() > 0.975) drops[i] = 0;
+    drops[i]++;
+  });
+}
+
+initMatrix();
+window.addEventListener('resize', initMatrix);
+setInterval(drawMatrix, 50);
+
+// ── Scroll reveal ──
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      e.target.querySelectorAll('.skill-bar-fill').forEach(bar => {
+        bar.style.width = bar.dataset.width + '%';
+      });
+    }
+  });
+}, { threshold: 0.1 });
+
+reveals.forEach(el => observer.observe(el));
+
+// ── Terminal fade-in ──
+const lines = document.querySelectorAll('.term-line');
+lines.forEach((line, i) => {
+  line.style.opacity = 0;
+  setTimeout(() => {
+    line.style.transition = 'opacity 0.3s';
+    line.style.opacity = 1;
+  }, 800 + i * 260);
+});
+</script>
+</body>
+</html>
