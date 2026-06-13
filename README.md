@@ -106,6 +106,8 @@ Whether it's a personal project, a small startup, or open-source software — re
 
 - 🐙 GitHub: [github.com/AshesGhost](https://github.com/AshesGhost)
 - 🌐 Personal Site: [ashesghost.github.io/Gh-WebSite/](https://ashesghost.github.io/Gh-WebSite/)
+- 🌐 work Site: [ashesghost.github.io/businesses](https://ashesghost.github.io/businesses/)
+
 
 ---
 
