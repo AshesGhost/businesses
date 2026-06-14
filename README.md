@@ -104,9 +104,9 @@ Identified three publicly accessible administration interfaces with default cred
 
 Whether it's a personal project, a small startup, or open-source software — reach out. All current engagements are free, scoped, and conducted with a written authorization agreement.
 
-- 🐙 GitHub: [github.com/AshesGhost](https://github.com/AshesGhost)
-- 🌐 Personal Site: [ashesghost.github.io/Gh-WebSite/](https://ashesghost.github.io/Gh-WebSite/)
-- 🌐 work Site: [ashesghost.github.io/businesses](https://ashesghost.github.io/businesses/)
+- 🐙 GitHub: [AshesGhost](https://github.com/AshesGhost)
+- 🌐 Personal Site: [Gh-WebSite](https://ashesghost.github.io/Gh-WebSite/)
+- 🌐 work Site: [businesses](https://ashesghost.github.io/businesses/)
 
 
 ---
